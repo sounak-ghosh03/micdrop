@@ -1,4 +1,4 @@
-import { Performance } from "../models/performance.model.js";
+import { Performance } from "../models/Perfomance.model.js";
 
 // CREATE PERFORMANCE POST /api/performances
 export const createPerformance = async (req, res) => {
