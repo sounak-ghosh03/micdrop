@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { Reaction } from "../models/reaction.model.js";
-import { Performance } from "../models/Perfomance.model.js";
+import { Performance } from "../models/Performance.model.js";
 
 // ADD REACTION
 //POST /api/performances/:id/reactions

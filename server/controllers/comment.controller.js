@@ -1,6 +1,6 @@
 import { Comment } from "../models/Comment.model.js";
 import { Performance } from "../models/Performance.model.js";
-import { moderateComment } from "../services/moderation.service.js";
+import { moderateComment } from "../services/moderation.services.js";
 
 // CREATE COMMENT POST /api/comments
 export const createComment = async (req, res) => {
