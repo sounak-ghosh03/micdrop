@@ -1,5 +1,6 @@
 import express from "express";
-import {authMiddleware} from "../middlewares/auth.middleware.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
+import { roleMiddleware } from "../middlewares/role.middleware.js";
 import {
    createPerformance,
    startPerformance,
@@ -9,12 +10,24 @@ import {
 
 const performanceRoute = express.Router();
 
-performanceRoute.post("/", authMiddleware, createPerformance);
-
-performanceRoute.patch("/:id/start", authMiddleware, startPerformance);
-
-performanceRoute.patch("/:id/end", authMiddleware, endPerformance);
-
+performanceRoute.post(
+   "/",
+   authMiddleware,
+   roleMiddleware("performer", "admin"),
+   createPerformance,
+);
+performanceRoute.patch(
+   "/:id/start",
+   authMiddleware,
+   roleMiddleware("performer", "admin"),
+   startPerformance,
+);
+performanceRoute.patch(
+   "/:id/end",
+   authMiddleware,
+   roleMiddleware("performer", "admin"),
+   endPerformance,
+);
 performanceRoute.get("/", getPerformances);
 
 export default performanceRoute;

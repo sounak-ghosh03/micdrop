@@ -1,5 +1,6 @@
 import express from "express";
-import {authMiddleware} from "../middlewares/auth.middleware.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
+import { rateLimitMiddleware } from "../middlewares/rateLimit.middleware.js";
 import {
    addReaction,
    getReactionSummary,
@@ -9,7 +10,7 @@ const reactionRoute = express.Router();
 
 reactionRoute
    .route("/")
-   .post(authMiddleware, addReaction)
+   .post(authMiddleware, rateLimitMiddleware(20, 60000), addReaction)
    .get(getReactionSummary);
 
 export default reactionRoute;
