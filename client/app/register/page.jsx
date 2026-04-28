@@ -8,12 +8,12 @@ import { useAuth } from "../../context/AuthContext";
 const ROLES = [
    {
       value: "audience",
-      label: "🎧 Audience",
+      label: "Audience",
       desc: "Watch and react to performances",
    },
    {
       value: "performer",
-      label: "🎤 Performer",
+      label: "Performer",
       desc: "Go live and perform for the crowd",
    },
 ];
@@ -120,7 +120,7 @@ export default function RegisterPage() {
                      fontSize: "0.9rem",
                   }}
                >
-                  Join the stage — it&apos;s free 🌟
+                  Join the stage — it&apos;s free
                </p>
             </div>
 
@@ -303,7 +303,7 @@ export default function RegisterPage() {
                            fontSize: "0.83rem",
                         }}
                      >
-                        ⚠️ {error}
+                        {error}
                      </div>
                   )}
 

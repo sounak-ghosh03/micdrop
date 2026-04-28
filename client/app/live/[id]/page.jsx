@@ -15,7 +15,11 @@ import {
 } from "../../../services/performanceApi";
 import { pinComment, unpinComment } from "../../../services/commentApi";
 import useSocket from "../../../hooks/useSocket";
-import { getStatusConfig, getInitials, formatCount } from "../../../utils/helpers";
+import {
+   getStatusConfig,
+   getInitials,
+   formatCount,
+} from "../../../utils/helpers";
 
 /**
  * LiveRoom — the full performance experience.
