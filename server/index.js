@@ -1,3 +1,4 @@
+import http from "http";
 import dotenv from "dotenv";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -9,6 +10,7 @@ import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.routes.js";
 import commentRoute from "./routes/comment.routes.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
+import { initSocket } from "./services/socket.js";
 
 dotenv.config();
 
@@ -33,10 +35,16 @@ app.use("/api/comments", commentRoute);
 // Global error handler
 app.use(errorMiddleware);
 
+// Wrap Express in a raw http.Server so Socket.IO can share the same port
+const httpServer = http.createServer(app);
+
+// Attach Socket.IO — also does app.set("io", io) for controllers
+initSocket(httpServer, app);
+
 // Connect to DB and start server
 DB()
    .then(() => {
-      app.listen(PORT, () => {
+      httpServer.listen(PORT, () => {
          console.log(`Server running on http://localhost:${PORT}`);
       });
    })

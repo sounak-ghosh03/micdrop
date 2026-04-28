@@ -33,6 +33,6 @@ const reactionSchema = new mongoose.Schema(
 );
 
 // Prevent spamming same reaction type rapidly
-reactionSchema.index({ performance: 1, user: 1, type: 1 }, { unique: false });
+reactionSchema.index({ performance: 1, user: 1, type: 1 }, { unique: true });
 
 export const Reaction = mongoose.model("Reaction", reactionSchema);
