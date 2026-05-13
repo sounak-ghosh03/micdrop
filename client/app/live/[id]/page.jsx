@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Navbar from "../../../components/Navbar";
 import Timer from "../../../components/Timer";
@@ -8,13 +8,14 @@ import CommentBox from "../../../components/CommentBox";
 import ReactionButtons from "../../../components/ReactionButtons";
 import { useAuth } from "../../../context/AuthContext";
 import {
-   getPerformances,
+   getPerformanceById,
    startPerformance,
    endPerformance,
    getReactionSummary,
 } from "../../../services/performanceApi";
 import { pinComment, unpinComment } from "../../../services/commentApi";
 import useSocket from "../../../hooks/useSocket";
+import useWebRTC from "../../../hooks/useWebRTC";
 import {
    getStatusConfig,
    getInitials,
@@ -46,27 +47,28 @@ export default function LiveRoomPage() {
    const isOwner = user && performance && user._id === performance.creator?._id;
    const canPin = isOwner || user?.role === "admin";
    const statusCfg = getStatusConfig(performance?.status ?? "ENDED");
+   const isLive = performance?.status === "LIVE";
+   const webrtcRole = isOwner ? "broadcaster" : "viewer";
 
-   // ── Fetch performance + reactions ──────────────────────────────────────────
+   // Fetch performance + reactions
    useEffect(() => {
       if (!id) return;
       setLoading(true);
 
-      Promise.all([getPerformances(), getReactionSummary(id)])
-         .then(([perfs, reactions]) => {
-            const found = perfs.find((p) => p._id === id);
-            if (!found) {
+      Promise.all([getPerformanceById(id), getReactionSummary(id)])
+         .then(([perf, reactions]) => {
+            if (!perf) {
                setError("Performance not found.");
                return;
             }
-            setPerformance(found);
+            setPerformance(perf);
             setReactionSummary(reactions);
          })
          .catch(() => setError("Failed to load performance."))
          .finally(() => setLoading(false));
    }, [id]);
 
-   // ── Socket event handlers ──────────────────────────────────────────────────
+   // Socket event handlers
    const handlePerformanceLive = useCallback(
       (p) => {
          if (p._id === id) setPerformance(p);
@@ -96,7 +98,7 @@ export default function LiveRoomPage() {
       [id],
    );
 
-   useSocket({
+   const socket = useSocket({
       token,
       performanceId: id,
       onCommentNew: (c) => setSocketCommentNew(c),
@@ -109,7 +111,32 @@ export default function LiveRoomPage() {
       onPerformanceEnded: handlePerformanceEnded,
    });
 
-   // ── Performer controls ─────────────────────────────────────────────────────
+   // WebRTC (media stream)
+   // Socket.IO is the signaling channel; WebRTC carries the actual audio/video.
+   const { localStream, remoteStream, mediaError } = useWebRTC({
+      role: webrtcRole,
+      performanceId: id,
+      socket,
+      isLive,
+   });
+
+   // Attach MediaStream objects to <video> elements via refs
+   const localVideoRef = useRef(null);
+   const remoteVideoRef = useRef(null);
+
+   useEffect(() => {
+      if (localVideoRef.current && localStream) {
+         localVideoRef.current.srcObject = localStream;
+      }
+   }, [localStream]);
+
+   useEffect(() => {
+      if (remoteVideoRef.current && remoteStream) {
+         remoteVideoRef.current.srcObject = remoteStream;
+      }
+   }, [remoteStream]);
+
+   // Performer controls
    const handleStart = async () => {
       setActionLoading(true);
       try {
@@ -146,7 +173,7 @@ export default function LiveRoomPage() {
       } catch {}
    }, []);
 
-   // ── Loading / Error states ─────────────────────────────────────────────────
+   // Loading / Error states
    if (loading)
       return (
          <div
@@ -233,7 +260,7 @@ export default function LiveRoomPage() {
                padding: "28px 20px 60px",
             }}
          >
-            {/* ── Performance header ──────────────────────────────────────────── */}
+            {/* Performance header */}
             <div
                className="card"
                style={{
@@ -453,7 +480,7 @@ export default function LiveRoomPage() {
                </div>
             </div>
 
-            {/* ── Two-column: Stream area + Chat ──────────────────────────────── */}
+            {/* Two-column: Stream area + Chat */}
             <div
                style={{
                   display: "grid",
@@ -466,11 +493,11 @@ export default function LiveRoomPage() {
                <div
                   style={{ display: "flex", flexDirection: "column", gap: 16 }}
                >
-                  {/* Stream / video placeholder */}
+                  {/* Stream / video area */}
                   <div
                      style={{
                         aspectRatio: "16/9",
-                        background: "var(--color-bg-elevated)",
+                        background: "#000",
                         border: "1px solid var(--color-border)",
                         borderRadius: 16,
                         display: "flex",
@@ -482,9 +509,40 @@ export default function LiveRoomPage() {
                         position: "relative",
                      }}
                   >
-                     {performance.status === "LIVE" ? (
+                     {/* Broadcaster self-view */}
+                     {isOwner && isLive && (
+                        <video
+                           ref={localVideoRef}
+                           autoPlay
+                           muted
+                           playsInline
+                           style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              display: localStream ? "block" : "none",
+                           }}
+                        />
+                     )}
+
+                     {/* Viewer remote stream */}
+                     {!isOwner && isLive && (
+                        <video
+                           ref={remoteVideoRef}
+                           autoPlay
+                           playsInline
+                           style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              display: remoteStream ? "block" : "none",
+                           }}
+                        />
+                     )}
+
+                     {/* Overlay states */}
+                     {isLive && !isOwner && !remoteStream && (
                         <>
-                           {/* Animated LIVE gradient background */}
                            <div
                               style={{
                                  position: "absolute",
@@ -513,21 +571,54 @@ export default function LiveRoomPage() {
                                  zIndex: 1,
                               }}
                            >
-                              Live Performance
+                              Connecting to stream…
                            </p>
+                        </>
+                     )}
+
+                     {isLive && isOwner && !localStream && !mediaError && (
+                        <>
+                           <div
+                              style={{
+                                 position: "absolute",
+                                 inset: 0,
+                                 background:
+                                    "radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.25) 0%, transparent 70%)",
+                                 animation: "pulse 3s ease-in-out infinite",
+                              }}
+                           />
+                           <span style={{ fontSize: "2rem", position: "relative", zIndex: 1 }}>📷</span>
                            <p
                               style={{
                                  margin: 0,
-                                 fontSize: "0.8rem",
+                                 fontSize: "0.85rem",
                                  color: "var(--color-text-muted)",
                                  position: "relative",
                                  zIndex: 1,
                               }}
                            >
-                              Stream player would embed here
+                              Requesting camera access…
                            </p>
                         </>
-                     ) : performance.status === "ENDED" ? (
+                     )}
+
+                     {mediaError && (
+                        <>
+                           <span style={{ fontSize: "2rem" }}>⚠️</span>
+                           <p
+                              style={{
+                                 margin: "0 16px",
+                                 fontSize: "0.85rem",
+                                 color: "#f87171",
+                                 textAlign: "center",
+                              }}
+                           >
+                              {mediaError}
+                           </p>
+                        </>
+                     )}
+
+                     {performance.status === "ENDED" && (
                         <>
                            <span style={{ fontSize: "2.5rem" }}>⏹</span>
                            <p
@@ -540,20 +631,23 @@ export default function LiveRoomPage() {
                               This performance has ended.
                            </p>
                         </>
-                     ) : (
-                        <>
-                           <span style={{ fontSize: "2.5rem" }}>🕐</span>
-                           <p
-                              style={{
-                                 margin: 0,
-                                 color: "var(--color-text-muted)",
-                                 fontSize: "0.9rem",
-                              }}
-                           >
-                              Performance hasn&apos;t started yet.
-                           </p>
-                        </>
                      )}
+
+                     {performance.status !== "LIVE" &&
+                        performance.status !== "ENDED" && (
+                           <>
+                              <span style={{ fontSize: "2.5rem" }}>🕐</span>
+                              <p
+                                 style={{
+                                    margin: 0,
+                                    color: "var(--color-text-muted)",
+                                    fontSize: "0.9rem",
+                                 }}
+                              >
+                                 Performance hasn&apos;t started yet.
+                              </p>
+                           </>
+                        )}
                   </div>
 
                   {/* Reaction bar */}
