@@ -1,6 +1,6 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-// ─── Auth header helper ──────────────────────────────────────────────────────
+// Auth header helper
 const getAuthHeaders = () => {
    const token =
       typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -19,10 +19,7 @@ const parseError = async (res) => {
    }
 };
 
-// =====================================================
 // PERFORMANCE API
-// =====================================================
-
 /**
  * GET /api/performances
  * Returns all LIVE and ENDED performances sorted newest first.
@@ -30,6 +27,19 @@ const parseError = async (res) => {
  */
 export const getPerformances = async () => {
    const res = await fetch(`${API_URL}/api/performances`);
+   if (!res.ok) throw await parseError(res);
+   return res.json();
+};
+
+/**
+ * GET /api/performances/:id
+ * Returns a single performance by ID regardless of status (SCHEDULED, LIVE, ENDED).
+ * Used by the LiveRoom page so broadcasters can open SCHEDULED performances.
+ * @param {string} id
+ * @returns {Promise<Performance>}
+ */
+export const getPerformanceById = async (id) => {
+   const res = await fetch(`${API_URL}/api/performances/${id}`);
    if (!res.ok) throw await parseError(res);
    return res.json();
 };
@@ -77,10 +87,7 @@ export const endPerformance = async (id) => {
    return res.json();
 };
 
-// =====================================================
 // REACTION API
-// =====================================================
-
 /**
  * POST /api/performances/:id/reactions  (auth required)
  * @param {string} performanceId
@@ -115,10 +122,7 @@ export const getReactionSummary = async (performanceId) => {
    return res.json();
 };
 
-// =====================================================
 // USER API
-// =====================================================
-
 /**
  * GET /api/users/:id
  * @param {string} userId
