@@ -10,11 +10,16 @@ import { Performance } from "../models/Performance.model.js";
 */
 const viewerRegistry = new Map();
 
-/* ── helpers ─────────────────────────────────────────────────── */
+/*
+  Broadcaster registry
+  Structure: Map<performanceId, socketId>
+  Tracks which socket is currently streaming for a given room.
+  Only one broadcaster per room is supported at a time.
+*/
+const broadcasterRegistry = new Map();
 
-/**
- * Return (or lazily create) the viewer Set for a given room.
- */
+//helpers
+// Return (or lazily create) the viewer Set for a given room.
 const getRoom = (performanceId) => {
    if (!viewerRegistry.has(performanceId)) {
       viewerRegistry.set(performanceId, new Set());
@@ -22,26 +27,23 @@ const getRoom = (performanceId) => {
    return viewerRegistry.get(performanceId);
 };
 
-/**
- * Flush the in-memory viewer count to MongoDB.
- * Fire-and-forget — we don't await this on hot paths.
- */
+// Flush the in-memory viewer count to MongoDB.
+// Fire-and-forget — we don't await this on hot paths.
 const flushViewerCount = (performanceId, count) => {
    Performance.findByIdAndUpdate(performanceId, {
       $set: { "stats.viewers": count },
    }).catch((err) =>
-      console.error(`[liveRoom] flushViewerCount error for ${performanceId}:`, err)
+      console.error(
+         `[liveRoom] flushViewerCount error for ${performanceId}:`,
+         err,
+      ),
    );
 };
 
-/* ── public API ──────────────────────────────────────────────── */
+// publicAPI
 
-/**
- * Register a user entering a live performance room.
- * @param {string} performanceId
- * @param {string} userId
- * @returns {number} updated viewer count
- */
+// Register a user entering a live performance room.
+
 export const joinRoom = (performanceId, userId) => {
    const room = getRoom(performanceId);
    room.add(userId);
@@ -50,12 +52,10 @@ export const joinRoom = (performanceId, userId) => {
    return count;
 };
 
-/**
- * Deregister a user leaving a live performance room.
- * @param {string} performanceId
- * @param {string} userId
- * @returns {number} updated viewer count
- */
+// Deregister a user leaving a live performance room.
+// @param performanceId
+// @param userId
+// @returns updated viewer count
 export const leaveRoom = (performanceId, userId) => {
    const room = getRoom(performanceId);
    room.delete(userId);
@@ -70,12 +70,9 @@ export const leaveRoom = (performanceId, userId) => {
    return count;
 };
 
-/**
- * Remove a user from every room they are currently in.
- * Called when a socket disconnects without an explicit leave.
- * @param {string} userId
- * @returns {Map<string, number>} performanceId → new viewer count for each affected room
- */
+// Remove a user from every room they are currently in.
+// Called when a socket disconnects without an explicit leave.
+// @returns performanceId → new viewer count for each affected room
 export const removeUserFromAllRooms = (userId) => {
    const affected = new Map();
 
@@ -96,24 +93,47 @@ export const removeUserFromAllRooms = (userId) => {
    return affected;
 };
 
-/**
- * Return the current live viewer count for a performance.
- * @param {string} performanceId
- * @returns {number}
- */
+// Return the current live viewer count for a performance.
+
 export const getViewerCount = (performanceId) => {
    return viewerRegistry.get(performanceId)?.size ?? 0;
 };
 
-/**
- * Return a snapshot of all active rooms.
- * Useful for admin dashboards / healthchecks.
- * @returns {Array<{ performanceId: string, viewers: number }>}
- */
+// Return a snapshot of all active rooms.
+
 export const getRoomSnapshot = () => {
    const snapshot = [];
    for (const [performanceId, viewers] of viewerRegistry.entries()) {
       snapshot.push({ performanceId, viewers: viewers.size });
    }
    return snapshot;
+};
+
+//broadcaster registry API
+
+// Register a socket as the broadcaster for a performance room.
+// Replaces any previous broadcaster for that room.
+
+export const registerBroadcaster = (performanceId, socketId) => {
+   broadcasterRegistry.set(performanceId, socketId);
+};
+
+// Return the broadcaster socket ID for a room, or null if none.
+
+export const getBroadcasterSocketId = (performanceId) => {
+   return broadcasterRegistry.get(performanceId) ?? null;
+};
+
+// Remove broadcaster entries for every room owned by a given socket.
+// Called on disconnect so stale entries don't block future broadcasts.
+
+export const removeBroadcasterBySocketId = (socketId) => {
+   const affected = [];
+   for (const [performanceId, bSocketId] of broadcasterRegistry.entries()) {
+      if (bSocketId === socketId) {
+         broadcasterRegistry.delete(performanceId);
+         affected.push(performanceId);
+      }
+   }
+   return affected;
 };
