@@ -8,9 +8,28 @@ export const createPerformance = async (req, res) => {
          ...req.body,
       });
 
+      await performance.populate("creator", "username name avatar");
+
       res.status(201).json(performance);
    } catch (error) {
       res.status(500).json({ message: "Failed to create performance" });
+   }
+};
+
+// GET SINGLE PERFORMANCE GET /api/performances/:id
+export const getPerformanceById = async (req, res) => {
+   try {
+      const performance = await Performance.findOne({
+         _id: req.params.id,
+         isDeleted: false,
+      }).populate("creator", "username name avatar");
+
+      if (!performance)
+         return res.status(404).json({ message: "Performance not found" });
+
+      res.json(performance);
+   } catch (error) {
+      res.status(500).json({ message: "Failed to fetch performance" });
    }
 };
 
@@ -33,7 +52,9 @@ export const startPerformance = async (req, res) => {
       if (!performance)
          return res.status(404).json({ message: "Performance not found" });
 
-      // Realtime notify
+      await performance.populate("creator", "username name avatar");
+
+      // Realtime notify — send populated document so clients keep creator info
       req.app.get("io").emit("performance:live", performance);
 
       res.json(performance);
@@ -61,7 +82,9 @@ export const endPerformance = async (req, res) => {
       if (!performance)
          return res.status(404).json({ message: "Performance not found" });
 
-      // Realtime notify
+      await performance.populate("creator", "username name avatar");
+
+      // Realtime notify — send populated document so clients keep creator info
       req.app.get("io").emit("performance:ended", performance);
 
       res.json(performance);
@@ -77,7 +100,7 @@ export const getPerformances = async (req, res) => {
          isDeleted: false,
          status: { $in: ["LIVE", "ENDED"] },
       })
-         .populate("creator", "name avatar")
+         .populate("creator", "username name avatar")
          .sort({ createdAt: -1 });
 
       res.json(performances);

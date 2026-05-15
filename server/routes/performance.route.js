@@ -3,6 +3,7 @@ import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
 import {
    createPerformance,
+   getPerformanceById,
    startPerformance,
    endPerformance,
    getPerformances,
@@ -29,5 +30,6 @@ performanceRoute.patch(
    endPerformance,
 );
 performanceRoute.get("/", getPerformances);
+performanceRoute.get("/:id", getPerformanceById);
 
 export default performanceRoute;
