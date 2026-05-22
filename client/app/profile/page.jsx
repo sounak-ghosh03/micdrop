@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getUserProfile } from '../services/userApi';
 import useAuth from '../hooks/useAuth';
-import Loader from '../components/Loader';
+import Loader from '../../components/Loader';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 const Profile = () => {
