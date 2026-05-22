@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Navbar from "../../components/Navbar";
+import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import PerformanceCard from "../../components/PerformanceCard";
 import {
    getPerformances,
@@ -105,9 +105,7 @@ export default function HomePage() {
    };
 
    return (
-      <div style={{ minHeight: "100vh", background: "var(--color-bg-base)" }}>
-         <Navbar />
-
+      <AuthenticatedLayout>
          <main
             style={{
                maxWidth: 900,
@@ -216,7 +214,7 @@ export default function HomePage() {
                </div>
             </div>
 
-            {/* ── Content ─────────────────────────────────────────────────────── */}
+            {/* Content */}
             {loading && (
                <div
                   style={{
@@ -474,6 +472,6 @@ export default function HomePage() {
                </div>
             </div>
          )}
-      </div>
+      </AuthenticatedLayout>
    );
 }

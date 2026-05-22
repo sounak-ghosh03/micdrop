@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Navbar from "../../components/Navbar";
+import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import { getRankMedal, getRankStyle, formatCount } from "../../utils/helpers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -84,9 +84,7 @@ export default function LeaderboardPage() {
    const creatorName = (c) => c?.username || c?.name || "Unknown";
 
    return (
-      <div style={{ minHeight: "100vh", background: "var(--color-bg-base)" }}>
-         <Navbar />
-
+      <AuthenticatedLayout>
          <main
             style={{
                maxWidth: 760,
@@ -94,7 +92,7 @@ export default function LeaderboardPage() {
                padding: "32px 20px 60px",
             }}
          >
-            {/* ── Header ──────────────────────────────────────────────────────── */}
+            {/* Header */}
             <div style={{ textAlign: "center", marginBottom: 36 }}>
                <h1
                   style={{
@@ -122,7 +120,7 @@ export default function LeaderboardPage() {
                </p>
             </div>
 
-            {/* ── Period tabs ──────────────────────────────────────────────────── */}
+            {/* Period tabs */}
             <div
                style={{
                   display: "flex",
@@ -165,7 +163,7 @@ export default function LeaderboardPage() {
                ))}
             </div>
 
-            {/* ── Top-3 podium ─────────────────────────────────────────────────── */}
+            {/* Top-3 podium */}
             {!loading && entries.length >= 3 && (
                <div
                   style={{
@@ -288,7 +286,7 @@ export default function LeaderboardPage() {
                </div>
             )}
 
-            {/* ── Full ranked list ─────────────────────────────────────────────── */}
+            {/* Full ranked list */}
             {loading && (
                <div
                   style={{ display: "flex", flexDirection: "column", gap: 10 }}
@@ -476,7 +474,7 @@ export default function LeaderboardPage() {
                </div>
             )}
          </main>
-      </div>
+      </AuthenticatedLayout>
    );
 }
 
