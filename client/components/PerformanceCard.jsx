@@ -27,7 +27,7 @@ import Timer from "./Timer";
  * }} props
  */
 export default function PerformanceCard({ performance }) {
-   const { _id, title, description, status, startedAt, creator, stats } =
+   const { _id, title, description, status, startedAt, endedAt, creator, stats } =
       performance;
    const statusCfg = getStatusConfig(status);
    const creatorName = creator?.username || creator?.name || "Unknown";
@@ -91,8 +91,12 @@ export default function PerformanceCard({ performance }) {
                         <span className={statusCfg.className}>
                            {statusCfg.label}
                         </span>
-                        {status === "LIVE" && (
-                           <Timer startedAt={startedAt} status={status} />
+                        {(status === "LIVE" || status === "ENDED") && (
+                           <Timer
+                              startedAt={startedAt}
+                              endedAt={endedAt}
+                              status={status}
+                           />
                         )}
                      </div>
 
