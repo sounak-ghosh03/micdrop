@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Navbar from "../../../components/Navbar";
+import AuthenticatedLayout from "../../../components/AuthenticatedLayout";
 import Timer from "../../../components/Timer";
 import CommentBox from "../../../components/CommentBox";
 import ReactionButtons from "../../../components/ReactionButtons";
@@ -176,10 +176,7 @@ export default function LiveRoomPage() {
    // Loading / Error states
    if (loading)
       return (
-         <div
-            style={{ minHeight: "100vh", background: "var(--color-bg-base)" }}
-         >
-            <Navbar />
+         <AuthenticatedLayout>
             <div
                style={{
                   maxWidth: 1100,
@@ -208,15 +205,12 @@ export default function LiveRoomPage() {
                   />
                </div>
             </div>
-         </div>
+         </AuthenticatedLayout>
       );
 
    if (error || !performance)
       return (
-         <div
-            style={{ minHeight: "100vh", background: "var(--color-bg-base)" }}
-         >
-            <Navbar />
+         <AuthenticatedLayout>
             <div
                style={{
                   maxWidth: 600,
@@ -242,7 +236,7 @@ export default function LiveRoomPage() {
                   Back to Home
                </button>
             </div>
-         </div>
+         </AuthenticatedLayout>
       );
 
    const creatorName =
@@ -250,9 +244,7 @@ export default function LiveRoomPage() {
    const totalReactions = reactionSummary.reduce((s, r) => s + r.count, 0);
 
    return (
-      <div style={{ minHeight: "100vh", background: "var(--color-bg-base)" }}>
-         <Navbar />
-
+      <AuthenticatedLayout>
          <main
             style={{
                maxWidth: 1100,
@@ -587,7 +579,15 @@ export default function LiveRoomPage() {
                                  animation: "pulse 3s ease-in-out infinite",
                               }}
                            />
-                           <span style={{ fontSize: "2rem", position: "relative", zIndex: 1 }}>📷</span>
+                           <span
+                              style={{
+                                 fontSize: "2rem",
+                                 position: "relative",
+                                 zIndex: 1,
+                              }}
+                           >
+                              📷
+                           </span>
                            <p
                               style={{
                                  margin: 0,
@@ -673,6 +673,6 @@ export default function LiveRoomPage() {
                </div>
             </div>
          </main>
-      </div>
+      </AuthenticatedLayout>
    );
 }
