@@ -41,6 +41,11 @@ export const createComment = async (req, res) => {
       const populatedComment = await Comment.findById(comment._id)
          .populate("user", "username avatar");
 
+      // Keep performance comment count in sync
+      await Performance.findByIdAndUpdate(performanceId, {
+         $inc: { "stats.commentCount": 1 },
+      });
+
       // Realtime emit
       req.app
          .get("io")
