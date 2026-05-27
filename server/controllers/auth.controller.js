@@ -4,11 +4,7 @@ import { User } from "../models/User.model.js";
 
 // GENERATE JWT TOKEN
 const generateToken = (id) => {
-   return jwt.sign(
-      { id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-   );
+   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
 // REGISTER USER POST /api/auth/register
@@ -56,7 +52,6 @@ export const registerUser = async (req, res) => {
          createdAt: user.createdAt,
          token,
       });
-
    } catch (error) {
       res.status(500).json({
          message: "Failed to register user",
@@ -92,10 +87,7 @@ export const loginUser = async (req, res) => {
       }
 
       // Compare password
-      const isMatch = await bcrypt.compare(
-         password,
-         user.password
-      );
+      const isMatch = await bcrypt.compare(password, user.password);
 
       if (!isMatch) {
          return res.status(401).json({
@@ -118,7 +110,6 @@ export const loginUser = async (req, res) => {
          createdAt: user.createdAt,
          token,
       });
-
    } catch (error) {
       res.status(500).json({
          message: "Failed to login",
@@ -129,8 +120,7 @@ export const loginUser = async (req, res) => {
 // GET CURRENT USER GET /api/auth/me
 export const getCurrentUser = async (req, res) => {
    try {
-      const user = await User.findById(req.user.id)
-         .select("-password");
+      const user = await User.findById(req.user.id).select("-password");
 
       if (!user) {
          return res.status(404).json({
@@ -139,7 +129,6 @@ export const getCurrentUser = async (req, res) => {
       }
 
       res.json(user);
-
    } catch (error) {
       res.status(500).json({
          message: "Failed to fetch user",
@@ -170,7 +159,6 @@ export const updateProfile = async (req, res) => {
          message: "Profile updated successfully",
          user,
       });
-
    } catch (error) {
       res.status(500).json({
          message: "Failed to update profile",
@@ -187,6 +175,27 @@ export const logoutUser = async (req, res) => {
    } catch (error) {
       res.status(500).json({
          message: "Failed to logout",
+      });
+   }
+};
+
+// DELETE ACCOUNT  DELETE /api/auth/account
+export const deleteAccount = async (req, res) => {
+   try {
+      const user = await User.findByIdAndDelete(req.user.id);
+
+      if (!user) {
+         return res.status(404).json({
+            message: "User not found",
+         });
+      }
+
+      res.json({
+         message: "Account deleted successfully",
+      });
+   } catch (error) {
+      res.status(500).json({
+         message: "Failed to delete account",
       });
    }
 };

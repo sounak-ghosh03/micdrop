@@ -31,18 +31,16 @@ export const timeAgo = (date) => {
 };
 
 /**
- * Get 1-2 character initials from a name for avatar fallback
+ * Get fisrt and last character initials from a name for avatar fallback
  * @param {string} name
  * @returns {string}
  */
 export const getInitials = (name) => {
-   if (!name) return "?";
-   return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
+   if (!name) return "U";
+   const parts = name.trim().split(" ");
+   return parts.length === 1
+      ? parts[0].charAt(0).toUpperCase()
+      : (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 };
 
 /**
@@ -55,7 +53,6 @@ export const formatCount = (n) => {
    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
    return String(n ?? 0);
 };
-
 
 // REACTION CONFIG
 export const REACTION_TYPES = ["LIKE", "APPLAUSE", "LOVE", "LAUGH", "WOW"];
@@ -76,7 +73,6 @@ export const REACTION_LABELS = {
    WOW: "Wow",
 };
 
-
 // STATUS CONFIG
 /**
  * Returns badge class and label for a performance status
@@ -95,7 +91,6 @@ export const getStatusConfig = (status) => {
          return { label: status, className: "badge badge-ended" };
    }
 };
-
 
 // AUTH / LOCAL STORAGE
 const isBrowser = typeof window !== "undefined";
@@ -121,7 +116,6 @@ export const setStoredUser = (user) =>
 
 export const removeStoredUser = () =>
    isBrowser && localStorage.removeItem("user");
-
 
 // LEADERBOARD RANK HELPERS
 /**

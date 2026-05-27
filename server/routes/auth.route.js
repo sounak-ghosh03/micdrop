@@ -7,6 +7,7 @@ import {
    getCurrentUser,
    updateProfile,
    logoutUser,
+   deleteAccount,
 } from "../controllers/auth.controller.js";
 
 import { authMiddleware } from "../middlewares/auth.middleware.js";
@@ -19,5 +20,6 @@ router.post("/login", rateLimitMiddleware(5, 60000), loginUser);
 router.get("/me", authMiddleware, getCurrentUser);
 router.patch("/profile", authMiddleware, updateProfile);
 router.post("/logout", authMiddleware, logoutUser);
+router.delete("/account", authMiddleware, deleteAccount);
 
 export default router;

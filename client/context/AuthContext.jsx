@@ -110,6 +110,28 @@ export const AuthProvider = ({ children }) => {
       [user],
    );
 
+   // deleteAccount
+   const deleteAccount = useCallback(async () => {
+      const token = getToken();
+      const res = await fetch(`${API_URL}/api/auth/account`, {
+         method: "DELETE",
+         headers: {
+            Authorization: `Bearer ${token}`,
+         },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to delete account");
+
+      // Clear auth state
+      removeToken();
+      removeStoredUser();
+      setTokenState(null);
+      setUser(null);
+
+      // Redirect to register page
+      window.location.href = "/register";
+   }, []);
+
    return (
       <AuthContext.Provider
          value={{
@@ -121,6 +143,7 @@ export const AuthProvider = ({ children }) => {
             register,
             logout,
             updateProfile,
+            deleteAccount,
          }}
       >
          {children}
