@@ -9,6 +9,8 @@ import performanceRoute from "./routes/performance.route.js";
 import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.routes.js";
 import commentRoute from "./routes/comment.routes.js";
+import adminAuthRoute from "./routes/adminAuth.route.js";
+import adminRoute from "./routes/admin.route.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { initSocket } from "./services/socket.js";
 
@@ -31,6 +33,9 @@ app.use("/api/users", userRoute);
 app.use("/api/performances", performanceRoute);
 app.use("/api/performances/:id/reactions", reactionRoute);
 app.use("/api/comments", commentRoute);
+// Admin routes — admin auth is public, all other /api/admin/* are JWT-gated
+app.use("/api/admin/auth", adminAuthRoute);
+app.use("/api/admin", adminRoute);
 
 // Global error handler
 app.use(errorMiddleware);

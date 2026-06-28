@@ -109,6 +109,9 @@ export const getRoomSnapshot = () => {
    return snapshot;
 };
 
+// Alias used by admin controller
+export const getAllRooms = getRoomSnapshot;
+
 //broadcaster registry API
 
 // Register a socket as the broadcaster for a performance room.
