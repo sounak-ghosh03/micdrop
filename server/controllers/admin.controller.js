@@ -9,7 +9,11 @@ import {
    refreshCreatorScore,
    recomputeRanks,
 } from "../services/leaderboard.js";
-import { incrementWarning } from "../services/moderation.services.js";
+import {
+   incrementWarning,
+   getBannedWordsList,
+   setBannedWords,
+} from "../services/moderation.services.js";
 import { getViewerCount, getAllRooms } from "../services/liveRoom.js";
 
 const log = (adminId, action, targetType, targetId, details, req) =>
@@ -21,9 +25,9 @@ const log = (adminId, action, targetType, targetId, details, req) =>
       details,
       ip: req.ip,
       userAgent: req.headers["user-agent"],
-   }).catch(() => {});
+   }).catch(() => { });
 
-// ── Dashboard ─────────────────────────────────────────────────────────────────
+// Dashboard 
 
 export const getAdminStats = async (req, res) => {
    try {
@@ -86,7 +90,7 @@ export const getAdminStats = async (req, res) => {
    }
 };
 
-// ── Users ─────────────────────────────────────────────────────────────────────
+// Users 
 
 export const getAllUsers = async (req, res) => {
    try {
@@ -566,24 +570,8 @@ export const resetLeaderboard = async (req, res) => {
 
 //  Moderation settings
 
-// In-memory for now; replace with DB-backed store when scaling
-let _bannedWords = [
-   "idiot",
-   "trash",
-   "stupid",
-   "hate",
-   "loser",
-   "abuse",
-   "bjp",
-   "tmc",
-   "bitch",
-   "modi",
-   "mamata",
-   "allah",
-];
-
 export const getBannedWords = async (req, res) => {
-   return res.json({ bannedWords: _bannedWords });
+   return res.json({ bannedWords: getBannedWordsList() });
 };
 
 export const updateBannedWords = async (req, res) => {
@@ -595,26 +583,25 @@ export const updateBannedWords = async (req, res) => {
             .json({ message: "bannedWords must be an array" });
       }
 
-      _bannedWords = bannedWords.map((w) => w.toLowerCase().trim());
+      const cleaned = bannedWords.map((w) => w.toLowerCase().trim());
+      setBannedWords(cleaned);
       log(
          req.admin._id,
          "update_banned_words",
          "system",
          null,
-         { count: _bannedWords.length },
+         { count: cleaned.length },
          req,
       );
 
       return res.json({
          message: "Banned words updated",
-         bannedWords: _bannedWords,
+         bannedWords: getBannedWordsList(),
       });
    } catch {
       return res.status(500).json({ message: "Failed to update banned words" });
    }
 };
-
-export const getBannedWordsList = () => _bannedWords;
 
 // Audit logs
 

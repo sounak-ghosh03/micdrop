@@ -20,8 +20,9 @@ const sanitizeText = (text) => {
   return text.replace(/<[^>]*>?/gm, "").trim();
 };
 
-// Basic bad words list (expand later)
-const bannedWords = [
+// Canonical banned-words list — owned here so the comment filter and the
+// admin update API both read/write the same array.
+let _bannedWords = [
   "idiot",
   "trash",
   "stupid",
@@ -33,15 +34,18 @@ const bannedWords = [
   "bitch",
   "modi",
   "mamata",
-  "allah"
-  
+  "allah",
 ];
+
+// Used by admin.controller.js to read/update the live list
+export const getBannedWordsList = () => _bannedWords;
+export const setBannedWords = (words) => { _bannedWords = words; };
 
 // Check profanity
 const containsProfanity = (text) => {
   const lowerText = text.toLowerCase();
 
-  return bannedWords.some((word) => lowerText.includes(word));
+  return _bannedWords.some((word) => lowerText.includes(word));
 };
 
 // Get tracker helper

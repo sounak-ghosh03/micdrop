@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Reaction } from "../models/reaction.model.js";
+import { Reaction } from "../models/Reaction.model.js";
 import { Performance } from "../models/Performance.model.js";
 
 // ADD REACTION
@@ -9,7 +9,8 @@ export const addReaction = async (req, res) => {
    session.startTransaction();
 
    try {
-      const { type, value = 1 } = req.body;
+      const { type } = req.body;
+      const value = 1; // Always 1 — do not trust client-supplied value
 
       const reaction = await Reaction.create(
          [
