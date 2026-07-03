@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { Performance } from "../models/Performance.model.js";
 import { Comment } from "../models/Comment.model.js";
-import { Reaction } from "../models/reaction.model.js";
+import { Reaction } from "../models/Reaction.model.js";
 
 // CREATE PERFORMANCE POST /api/performances
 export const createPerformance = async (req, res) => {
