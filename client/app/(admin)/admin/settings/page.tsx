@@ -229,9 +229,7 @@ export default function SettingsPage() {
                   disabled={lbLoading === "reset"}
                   style={{ ...submitBtn, background: "#ef4444" }}
                >
-                  {lbLoading === "reset"
-                     ? "Resetting…"
-                     : "Reset Leaderboard"}
+                  {lbLoading === "reset" ? "Resetting…" : "Reset Leaderboard"}
                </button>
             </div>
          </Section>
